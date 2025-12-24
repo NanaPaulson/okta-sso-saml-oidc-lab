@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container py-4">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <div class="d-flex align-items-center gap-2 text-muted" data-aos="fade-right">
+        <span class="pulse-dot"></span>
+        Live SOC Overview
+      </div>
+      <h2 class="mb-0">Security Operations Center</h2>
+    </div>
+    <a class="btn btn-outline-danger" href="{% url 'logout_all' %}">Sign out</a>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-lg-8">
+      <div class="card glass hover-lift" data-aos="fade-up">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-muted mb-1">Authenticated via {{ auth_method|default:"-"|upper }}</div>
+            <h5 class="mb-1">
+              {% with ui=userinfo|default:google_userinfo %}
+                {% if ui.name %}{{ ui.name }}{% elif ui.email %}{{ ui.email }}{% else %}User session active{% endif %}
+              {% endwith %}
+            </h5>
+            <div class="text-muted">
+              {% if userinfo.email %}{{ userinfo.email }}{% elif google_userinfo.email %}{{ google_userinfo.email }}{% else %}Session established{% endif %}
+            </div>
+          </div>
+          <div class="text-end">
+            <div class="text-muted">Last 24h events</div>
+            <div class="fs-3 fw-bold">{{ total_events }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card glass hover-lift h-100" data-aos="fade-up" data-aos-delay="50">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="text-muted">Protocol mix</span>
+            <span class="badge badge-soft">OIDC / SAML / Google</span>
+          </div>
+          <div class="d-flex gap-3">
+            <div>
+              <div class="fs-5 fw-semibold">{{ proto_oidc }}</div>
+              <div class="text-muted small">OIDC</div>
+            </div>
+            <div>
+              <div class="fs-5 fw-semibold">{{ proto_saml }}</div>
+              <div class="text-muted small">SAML</div>
+            </div>
+            <div>
+              <div class="fs-5 fw-semibold">{{ proto_system }}</div>
+              <div class="text-muted small">System</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metrics -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-3">
+      <div class="card glass hover-lift h-100" data-aos="fade-up" data-aos-delay="0">
+        <div class="card-body">
+          <div class="text-muted">Total events (24h)</div>
+          <div class="fs-3 fw-bold">{{ total_events }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card glass hover-lift h-100" data-aos="fade-up" data-aos-delay="50">
+        <div class="card-body">
+          <div class="text-muted d-flex justify-content-between align-items-center">
+            <span>High</span><span class="badge text-bg-danger">Critical</span>
+          </div>
+          <div class="fs-3 fw-bold">{{ sev_high }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card glass hover-lift h-100" data-aos="fade-up" data-aos-delay="100">
+        <div class="card-body">
+          <div class="text-muted">Medium</div>
+          <div class="fs-3 fw-bold">{{ sev_medium }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card glass hover-lift h-100" data-aos="fade-up" data-aos-delay="150">
+        <div class="card-body">
+          <div class="text-muted">Low</div>
+          <div class="fs-3 fw-bold">{{ sev_low }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      <div class="card glass hover-lift h-100" data-aos="fade-up">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Severity distribution (Pie)</h6>
+            <span class="badge badge-soft">24h {% if total_events == 0 %}| No data{% endif %}</span>
+          </div>
+          <canvas id="severityChart" height="220" style="min-height:220px;"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card glass hover-lift h-100" data-aos="fade-up" data-aos-delay="50">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Protocol activity (Bar)</h6>
+            <span class="badge badge-soft">24h {% if total_events == 0 %}| No data{% endif %}</span>
+          </div>
+          <canvas id="protocolChart" height="220" style="min-height:220px;"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card glass hover-lift h-100" data-aos="fade-up" data-aos-delay="80">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Threat timeline</h6>
+            <span class="badge badge-soft">{% if total_events == 0 %}No data{% else %}Last 6h{% endif %}</span>
+          </div>
+          <canvas id="trendChart" height="220" style="min-height:220px;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analyst Chat / War Room -->
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6">
+      <div class="card glass hover-lift h-100" data-aos="fade-up">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Analyst War Room</h6>
+            <span class="badge badge-soft">Live feed</span>
+          </div>
+          <div class="border rounded-3 p-3" style="background: rgba(255,255,255,0.03); max-height: 260px; overflow-y: auto;">
+            <div class="mb-3">
+              <div class="d-flex justify-content-between">
+                <strong>Analyst A</strong><span class="text-muted small">now</span>
+              </div>
+              <div class="text-muted small">Triggered geo-anomaly rule on OIDC login. Investigating IP: 97.97.53.139.</div>
+            </div>
+            <div class="mb-3">
+              <div class="d-flex justify-content-between">
+                <strong>Bot</strong><span class="text-muted small">2m ago</span>
+              </div>
+              <div class="text-muted small">MFA challenge issued. Awaiting user response.</div>
+            </div>
+            <div class="mb-3">
+              <div class="d-flex justify-content-between">
+                <strong>Analyst B</strong><span class="text-muted small">5m ago</span>
+              </div>
+              <div class="text-muted small">SAML XML inspected; no tampering detected. Marking as low risk.</div>
+            </div>
+            <div class="mb-0">
+              <div class="d-flex justify-content-between">
+                <strong>Lead</strong><span class="text-muted small">12m ago</span>
+              </div>
+              <div class="text-muted small">Deploying conditional access tightening for unknown devices.</div>
+            </div>
+          </div>
+          <div class="mt-3">
+            <div class="form-control bg-dark border-0 text-muted">Live chat input disabled in demo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card glass hover-lift h-100" data-aos="fade-up" data-aos-delay="60">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">Triage queue</h6>
+            <span class="badge badge-soft">Auto-prioritized</span>
+          </div>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item bg-transparent text-white d-flex justify-content-between align-items-center">
+              Unusual IP (US -> EU) <span class="badge text-bg-danger">High</span>
+            </li>
+            <li class="list-group-item bg-transparent text-white d-flex justify-content-between align-items-center">
+              Multiple MFA prompts <span class="badge text-bg-warning">Medium</span>
+            </li>
+            <li class="list-group-item bg-transparent text-white d-flex justify-content-between align-items-center">
+              SAML assertion replay check <span class="badge text-bg-secondary">Low</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent events -->
+  <div class="card glass hover-lift" data-aos="fade-up">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="mb-0">Recent events</h6>
+        <span class="text-muted small">Last 50 records</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Severity</th>
+              <th>Protocol</th>
+              <th>Action</th>
+              <th>Outcome</th>
+              <th>Detail</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in events %}
+              <tr>
+                <td class="text-nowrap">{{ e.created_at }}</td>
+                <td>
+                  <span class="badge text-bg-{% if e.severity == 'high' %}danger{% elif e.severity == 'medium' %}warning{% else %}secondary{% endif %}">
+                    {{ e.severity|title }}
+                  </span>
+                </td>
+                <td><span class="badge badge-soft">{{ e.protocol|upper }}</span></td>
+                <td>{{ e.action }}</td>
+                <td>{{ e.outcome }}</td>
+                <td class="text-truncate" style="max-width: 260px;">
+                  {% if e.detail %}{{ e.detail }}{% else %}<span class="text-muted">-</span>{% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="text-muted">No events yet.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  window.addEventListener("load", function() {
+    if (!window.Chart) {
+      console.warn("Chart.js not loaded; charts skipped.");
+      return;
+    }
+
+    const ensureData = (arr) => arr.every((v) => !v) ? [1, 1, 1] : arr;
+
+    const sevCtx = document.getElementById('severityChart');
+    if (sevCtx) {
+      const sevData = ensureData([{{ sev_high|default:0 }}, {{ sev_medium|default:0 }}, {{ sev_low|default:0 }}]);
+      new Chart(sevCtx, {
+        type: 'pie',
+        data: {
+          labels: ['High', 'Medium', 'Low'],
+          datasets: [{
+            data: sevData,
+            backgroundColor: ['#ef4444', '#f59e0b', '#22c55e'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          plugins: { legend: { labels: { color: '#dbe4f3' } } },
+          cutout: '45%'
+        }
+      });
+    }
+
+    const protoCtx = document.getElementById('protocolChart');
+    if (protoCtx) {
+      const protoData = ensureData([{{ proto_oidc|default:0 }}, {{ proto_saml|default:0 }}, {{ proto_system|default:0 }}]);
+      new Chart(protoCtx, {
+        type: 'bar',
+        data: {
+          labels: ['OIDC', 'SAML', 'SYSTEM'],
+          datasets: [{
+            label: 'Events',
+            data: protoData,
+            backgroundColor: ['#3b82f6', '#8b5cf6', '#22c55e'],
+            borderRadius: 6
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#dbe4f3' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { ticks: { color: '#9fb3d1' }, grid: { color: 'rgba(255,255,255,0.05)' }, suggestedMax: Math.max(...protoData) + 1 }
+          }
+        }
+      });
+    }
+
+    const trendCtx = document.getElementById('trendChart');
+    if (trendCtx) {
+      const trendLabels = {{ trend_labels|safe }};
+      const trendCounts = {{ trend_counts|safe }};
+      const trendData = trendCounts.every((v) => !v) ? [1,1,1,1,1,1] : trendCounts;
+      new Chart(trendCtx, {
+        type: 'line',
+        data: {
+          labels: trendLabels,
+          datasets: [
+            { label: 'Total', data: trendData, borderColor: '#3b82f6', tension: 0.35, fill: false }
+          ]
+        },
+        options: {
+          plugins: { legend: { labels: { color: '#dbe4f3' } } },
+          scales: {
+            x: { ticks: { color: '#dbe4f3' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { ticks: { color: '#9fb3d1' }, grid: { color: 'rgba(255,255,255,0.05)' }, suggestedMax: Math.max(...trendData) + 1 }
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endblock %}

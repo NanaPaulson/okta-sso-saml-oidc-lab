@@ -1,0 +1,24 @@
+# Python / Django
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.venv/
+*.log
+.DS_Store
+
+# Django artifacts
+db.sqlite3
+*.sqlite3
+
+# Environment
+.env
+
+# Node / tooling
+node_modules/
+
+# Editors / tooling
+.idea/
+.vscode/
+.pytest_cache/
+.coverage

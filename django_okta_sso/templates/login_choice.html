@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row g-4 align-items-center">
+  <div class="col-lg-6" data-aos="fade-right">
+    <div class="card glass hover-lift h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-2 mb-2 text-muted">
+          <span class="pulse-dot"></span>
+          Access Control · Enterprise
+        </div>
+        <h2 class="mb-3">Secure Operations Portal</h2>
+        <p class="text-muted mb-4">
+          Choose your trusted identity provider to enter the Security Operations Center.
+          MFA enforced. Continuous session monitoring. Federated identities only.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-primary" href="/oidc/login/">Okta OIDC</a>
+          <a class="btn btn-outline-primary" href="/saml/login/">Okta SAML</a>
+          <a class="btn btn-outline-light" href="/google/login/">Google</a>
+        </div>
+        <div class="mt-4">
+          <div class="text-muted small">Access posture</div>
+          <div class="d-flex gap-3">
+            <span class="badge badge-soft">Zero Trust</span>
+            <span class="badge badge-soft">MFA Required</span>
+            <span class="badge badge-soft">Session Anomaly Watch</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6" data-aos="fade-left">
+    <div class="card glass hover-lift h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="mb-0 text-muted">Live Signals</h6>
+          <span class="badge badge-soft">Updated</span>
+        </div>
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="p-3 rounded-3" style="background: rgba(124,199,255,0.08); border: 1px solid rgba(124,199,255,0.25);">
+              <div class="text-muted small mb-1">Recent AuthZ</div>
+              <div class="fs-4 fw-bold">32</div>
+              <div class="small text-success">+5 new</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-3 rounded-3" style="background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.25);">
+              <div class="text-muted small mb-1">Alerts</div>
+              <div class="fs-4 fw-bold">3</div>
+              <div class="small text-warning">Review needed</div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="p-3 rounded-3 glass">
+              <div class="d-flex justify-content-between text-muted small mb-1">
+                <span>Geo anomalies</span><span>Last 24h</span>
+              </div>
+              <div class="progress" style="height: 8px;">
+                <div class="progress-bar bg-danger" style="width: 18%;"></div>
+                <div class="progress-bar bg-warning" style="width: 12%;"></div>
+                <div class="progress-bar bg-success" style="width: 50%;"></div>
+              </div>
+              <div class="d-flex justify-content-between small mt-2 text-muted">
+                <span>Blocked</span><span>Challenged</span><span>Trusted</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

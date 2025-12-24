@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-10">
+
+    <div class="card shadow-sm">
+      <div class="card-body">
+
+        <h4 class="card-title mb-3">SAML Response (Decoded)</h4>
+
+        <div class="alert alert-info">
+          This page shows the decoded SAML assertion from Okta.
+          <br>
+          <strong>Note:</strong> Signature validation is not implemented.
+        </div>
+
+        <pre class="bg-light p-3 border rounded small" style="white-space: pre-wrap;">
+{{ xml|escape }}
+        </pre>
+
+        <a href="/" class="btn btn-secondary mt-3">Back</a>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
